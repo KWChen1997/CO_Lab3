@@ -1,0 +1,5 @@
+test/*
+*.docx
+*.ods
+*.png
+.vscode/*
