@@ -3,3 +3,5 @@ test/*
 *.ods
 *.png
 .vscode/*
+*.ods#
+*.vcd
