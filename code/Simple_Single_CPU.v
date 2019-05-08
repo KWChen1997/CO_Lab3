@@ -25,6 +25,7 @@ wire [31:0]adder1_o;
 wire [31:0]adder2_o;
 wire [31:0]instr_o;
 wire [4:0]M1_o;
+wire [4:0]M6_o;
 wire [31:0]alu_result;
 wire decoder_RW;
 wire decoder_RD;
@@ -38,11 +39,17 @@ wire [31:0]shifter_o;
 wire [3:0]alu_ctrl;
 wire decoder_b;
 wire alu_zero;
-wire [27:0]jump_addr;
+wire [31:0]jump_addr;
 wire [31:0]M3_o;
+wire [31:0]M4_o;
+wire [31:0]M5_o;
 wire decoder_MemR;
 wire decoder_MemW;
 wire [31:0]Data_Memory_o;
+wire decoder_link_o;
+wire isJr;
+wire [1:0]decoder_branch_type;
+wire BC_o;
 
 //Greate componentes
 ProgramCounter PC(
@@ -75,8 +82,8 @@ Reg_File RF(
 		.rst_i(rst_i) ,	
 		.RSaddr_i(instr_o[25-:5]) ,
 		.RTaddr_i(instr_o[20-:5]) ,
-		.RDaddr_i(M1_o) ,
-		.RDdata_i(Data_Memory_o)  ,
+		.RDaddr_i(M6_o) ,
+		.RDdata_i(M5_o)  ,
 		.RegWrite_i(decoder_RW),
 		.RSdata_o(RF_RD1) ,
 		.RTdata_o(RF_RD2)
@@ -90,6 +97,7 @@ Decoder Decoder(
 		.RegDst_o(decoder_RD),
 		.Branch_o(decoder_b),
 		.Jump_o(Jump),
+		.Link_o(decoder_link_o),
 		.MemRead_o(decoder_MemR),
 		.MemWrite_o(decoder_MemW)
 		);
@@ -97,6 +105,7 @@ Decoder Decoder(
 ALU_Ctrl AC(
 		.funct_i(instr_o[5-:6]),
 		.ALUOp_i(decoder_alu_op),
+		.isJr(isJr),
 		.ALUCtrl_o(alu_ctrl)
 		);
 	
@@ -135,22 +144,43 @@ Shift_Left_Two_32 Shifter(
 MUX_2to1 #(.size(32)) Mux_PC_Source(
 		.data0_i(adder1_o),
 		.data1_i(adder2_o),
-		.select_i(decoder_b&(alu_zero)),
+		.select_i(decoder_b&BC_o),
 		.data_o(M3_o)
 		);	
 
 // lab 3
 
 Shift_Left_Two_32 Shifter_jump(
-	.data_i(instr_o[25:0]),
+	.data_i({{6{1'b0}},instr_o[25:0]}),
 	.data_o(jump_addr)
 );
 
+MUX_2to1 #(.size(32)) MUX_jump_source(
+		.data0_i({adder1_o[31:28],jump_addr[27:0]}),
+		.data1_i(RF_RD1),
+		.select_i(isJr),
+		.data_o(M4_o)
+);
+
 MUX_2to1 #(.size(32)) Mux_jump(
-		.data0_i({adder1_o[31:28],jump_addr}),
+		.data0_i(M4_o),
 		.data1_i(M3_o),
-		.select_i(Jump),
+		.select_i(Jump ^ isJr),
 		.data_o(next_pc)
+);
+
+MUX_2to1 #(.size(32)) RF_Write_data_source(
+		.data0_i(Data_Memory_o),
+		.data1_i(adder1_o),
+		.select_i(decoder_link_o),
+		.data_o(M5_o)
+);
+
+MUX_2to1 #(.size(5)) M6(
+		.data0_i(M1_o),
+		.data1_i(5'd31),
+		.select_i(decoder_link_o),
+		.data_o(M6_o)
 );
 
 Data_Memory Data_Memory(
@@ -160,6 +190,13 @@ Data_Memory Data_Memory(
 	.MemRead_i(decoder_MemR),
 	.MemWrite_i(decoder_MemW),
 	.data_o(Data_Memory_o)
+);
+
+Branch_Ctrl BC(
+	.Branch_type_i(decoder_branch_type),
+	.zero_i(alu_zero),
+	.sign_i(alu_result[31]),
+	.Branch_Ctrl_o(BC_o)
 );
 
 endmodule

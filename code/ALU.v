@@ -51,7 +51,7 @@ always@(*)begin
 		4'b1111/*15*/: result_o <= src2_i << 16; //lui
 		4'b0110/* 6*/: result_o <= src1_i | (src2_i & 32'h0000FFFF); //ori
 		4'b1000/* 8*/: result_o <= src1_i * src2_i;
-		4'b0000/* 0*/: result_o <= src1_i;
+		4'b0000/* 0*/: result_o <= 32'd0;
 
 
 		default: result_o <= 0;
