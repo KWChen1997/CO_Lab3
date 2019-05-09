@@ -92,7 +92,7 @@ module Decoder(
                         |instr_op_i == 6'b101011            //sw
                         |instr_op_i == 6'b001000)?3'b000:   //addi
                         (instr_op_i == 6'b000100            //beq
-                        |instr_op_i == 6'b000011            //bne
+                        |instr_op_i == 6'b000101            //bne
                         |instr_op_i == 6'b000110            //ble
                         |instr_op_i == 6'b000001)?3'b001:   //bltz
                         (instr_op_i == 6'b001111)?3'b101:   //lui
@@ -106,7 +106,7 @@ module Decoder(
                       |instr_op_i == 6'b000110              //ble
                       |instr_op_i == 6'b000001);            //bltz
     assign Branch_type_o =  (instr_op_i == 6'b000001)?2'b01:    //bltz
-                            (instr_op_i == 6'b000011)?2'b11:    //bne
+                            (instr_op_i == 6'b000101)?2'b11:    //bne
                             (instr_op_i == 6'b000110)?2'b00:    //ble
                             2'b10;                              //beq
     assign Jump_o = (instr_op_i == 6'b000010                    //j
