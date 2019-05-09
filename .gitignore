@@ -5,3 +5,4 @@ test/*
 .vscode/*
 *.ods#
 *.vcd
+*.tmp
