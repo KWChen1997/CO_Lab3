@@ -105,10 +105,10 @@ module Decoder(
                       |instr_op_i == 6'b000101              //bne
                       |instr_op_i == 6'b000110              //ble
                       |instr_op_i == 6'b000001);            //bltz
-    assign Branch_type_o =  (instr_op_i == 6'b000100)?2'b10:    //beq
+    assign Branch_type_o =  (instr_op_i == 6'b000001)?2'b01:    //bltz
                             (instr_op_i == 6'b000011)?2'b11:    //bne
                             (instr_op_i == 6'b000110)?2'b00:    //ble
-                            2'b01;                              //bltz
+                            2'b10;                              //beq
     assign Jump_o = (instr_op_i == 6'b000010                    //j
                     |instr_op_i == 6'b000011                    //jal
                     |(instr_op_i == 6'd0 && funct_i == 6'd8));  //jr
